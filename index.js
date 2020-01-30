@@ -2,8 +2,8 @@ const inquirer = require("inquirer");
 const fs = require("fs");
 const util = require("util");
 const axios = require("axios");
-
 const writeFile = util.promisify(fs.writeFile);
+let repoNum = 0;
 const colors = {
     green: {
         wrapperBackground: "#E6E1C3",
@@ -35,11 +35,28 @@ function prompUser() {
     return inquirer.prompt([
         {
             type: "input",
+            name: "user",
+            message: "enter you GitHub username"
+        }, {
+            type: "input",
             name: "color",
             message: "Select one color: green, blue, pink or red"
         }
     ])
 }
+
+function getRepoNum(data) {
+    const queryUrl = `https://api.github.com/users/${data.user}/repos?per_page=100`;
+
+    axios.get(queryUrl).then(function (res) {
+        const repoNames = res.data.map(function (repo) {
+            return repo.name;
+        });
+        repoNum = repoNames.length;
+        console.log(`Saved ${repoNames.length} repos`);
+        console.log(repo.name);
+    });
+};
 
 
 function generateHTML(data) {
@@ -65,7 +82,7 @@ function generateHTML(data) {
                 padding: 0;
                 margin: 0;
             }
-             
+
            .wrapper {
            background-color: ${colors[data.color].wrapperBackground};
            padding-top: 100px;
@@ -152,7 +169,7 @@ function generateHTML(data) {
                 padding-left: 100px;
                 padding-right: 100px;
             }
-            
+
             .row {
                 display: flex;
              flex-wrap: wrap;
@@ -160,7 +177,7 @@ function generateHTML(data) {
              margin-top: 20px;
              margin-bottom: 20px;
            }
-           
+
            .card {
                padding: 20px;
              border-radius: 6px;
@@ -168,18 +185,18 @@ function generateHTML(data) {
              color: ${colors[data.color].headerColor};
              margin: 20px;
            }
-           
+
            .col {
            flex: 1;
            text-align: center;
         }
-  
+
         a, a:hover {
             text-decoration: none;
             color: inherit;
             font-weight: bold;
            }
-           
+
            @media print { 
                body { 
                    zoom: .75; 
@@ -213,7 +230,7 @@ function generateHTML(data) {
                         <div class="col">
                             <div class="card">
                                 <h3>Public Respository</h3>
-                                <h4>Var</h4>
+                                <h4>${repoNum}</h4>
                             </div>
                         </div>
                         <div class="col">
@@ -245,8 +262,22 @@ function generateHTML(data) {
 }
 
 
+async function generateHTML() {
+    try {
+
+    } catch{
+
+    }
+}
+
+
+
 prompUser()
     .then(function (data) {
+        getRepoNum(data)
+    })
+    .then(async function (data) {
+        getRepoNum(data);
         const html = generateHTML(data);
 
         return writeFile("index.html", html);
